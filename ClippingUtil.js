@@ -1,4 +1,4 @@
-(function(){
+(function(window){
     var ieVersion = getInternetExplorerVersion();
 
     window.clipImage = clipImage;
@@ -9,41 +9,32 @@
         vmlClipImage('image.jpg',259,194);
     }
     else{
-        canvasClipImage('image.jpg',259,194);
+        canvasClipImage('image.jpg');
     }
 
-    function clipImage(imagePath,width,height){
-        if(ieVersion != -1 && getInternetExplorerVersion() < 9){
-            document.namespaces.add('v', 'urn:schemas-microsoft-com:vml', "#default#VML");
-            vmlClipImage(imagePath,width,height);
+    function clipImage(imagePathOrImage){
+        if(imagePathOrImage instanceof Image){
+            if(ieVersion != -1 && getInternetExplorerVersion() < 9){
+                document.namespaces.add('v', 'urn:schemas-microsoft-com:vml', "#default#VML");
+                vmlClipImage(imagePathOrImage);
+            }
+            else{
+                canvasClipImage(imagePathOrImage);
+            }
         }
-        else{
-            canvasClipImage(imagePath,width,height);
+        else if(imagePathOrImage instanceof String){
         }
     }
 
-    function canvasClipImage(imagePath,width,height){
-        var targetImage;
-
+    function canvasClipImage(image){
         var canvas = document.createElement('canvas');
-        canvas.setAttribute('width',width+'px');
-        canvas.setAttribute('height',height+'px');
         document.body.appendChild(canvas);
+        var targetImage = new Image();
 
-        targetImage = new Image();
-
-        targetImage.onload = function(){
-            // drawImages() will load the image into the <canvas> element
-            // The index of the loop is passed, as well as the image itself
-            drawImages(this,canvas);
-        };
-        targetImage.src = imagePath;
-    }
-
-    function drawImages(image,canvas){
+        canvas.setAttribute('width',image.width+'px');
+        canvas.setAttribute('height',image.height+'px');
         var context = canvas.getContext("2d");
 
-        //M259,0 L0,0 L10,90 L90,130, L259,0
         //M259,23 L100,23 L100,120 L245,131, L259,23
         context.beginPath();
         context.moveTo(259,23);
@@ -58,10 +49,9 @@
         // And the image is used to fill the path
         context.drawImage(image, 0, 0);
         context.closePath();
-
     }
 
-    function vmlClipImage(imagePath,width,height){
+    function vmlClipImage(imagePath,width,height,shapePath){
         var shape, div, fill;
 
         shape = document.createElement("v:shape");
@@ -105,5 +95,4 @@
         }
         return rv;
     }
-
-}());
+})(window);
